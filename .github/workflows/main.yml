@@ -1,0 +1,42 @@
+name: Export Mostaql Projects to Excel
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Run every day at 00:00 (midnight) UTC
+
+jobs:
+
+  export-to-excel:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4 pandas openpyxl
+        
+    - name: Run script and export to Excel
+      run: |
+        python main.py
+        
+    - name: Upload Excel file
+      uses: actions/upload-artifact@v2
+      with:
+        name: Mostaql-Projects.xlsx
+        path: Mostaql.xlsx
+        
+    - name: Send Excel file to Telegram
+      uses: appleboy/telegram-action@master
+      with:
+        username: ${{ secrets.TELEGRAM_USERNAME }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        document: Mostaql.xlsx
+        caption: "Here's the latest Mostaql projects export."
